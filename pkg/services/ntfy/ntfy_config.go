@@ -11,13 +11,14 @@ import (
 // Config for use within the ntfy plugin
 type Config struct {
 	standard.EnumlessConfig
-	Host         string `desc:"Server hostname (and optionally port)" url:"host,port" default:"ntfy.sh"`
-	Topic        string `desc:"Target topic name (*Required)" url:"path1"`
-	Username     string `desc:"Username of a protected topic" url:"User" default:""`
-	Password     string `desc:"Password of a protected topic" url:"Password" default:""`
-	Priority     uint8  `desc:"Message priority with 1=min, 3=default and 5=max" key:"priority" default:"3"`
-	MessageTitle string `desc:"Message title" key:"messagetitle" default:""`
-	DisableTLS   bool   `desc:"Using http instead of https" key:"disabletls" default:"No"`
+	Host         string   `desc:"Server hostname (and optionally port)" url:"host,port" default:"ntfy.sh"`
+	Topic        string   `desc:"Target topic name (*Required)" url:"path1"`
+	Username     string   `desc:"Username of a protected topic" url:"User" default:""`
+	Password     string   `desc:"Password of a protected topic" url:"Password" default:""`
+	Priority     uint8    `desc:"Message priority with 1=min, 3=default and 5=max" key:"priority" default:"3"`
+	MessageTitle string   `desc:"Message title" key:"title" default:""`
+	DisableTLS   bool     `desc:"Using http instead of https" key:"disabletls" default:"No"`
+	Tags         []string `desc:"List of tags that may or not map to emojis separated by \",\" (comma)" key:"tags,tag" default:""`
 }
 
 // GetURL returns a URL representation of it's current field values

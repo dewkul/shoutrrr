@@ -7,7 +7,7 @@ type messageRequest struct {
 	Topic    string   `json:"topic"`
 	Message  string   `json:"message,omitempty"`
 	Title    string   `json:"title,omitempty"`
-	Tags     []string `json:"tag,omitempty"`
+	Tags     []string `json:"tags,omitempty"`
 	Priority uint8    `json:"priority,omitempty"`
 	// TODO: Action Buttons
 	Click    string `json:"click,omitempty"`

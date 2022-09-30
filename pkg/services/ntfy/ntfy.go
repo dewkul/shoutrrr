@@ -57,19 +57,20 @@ func (service *Service) authorization() string {
 
 // Send a notification message to Ntfy
 func (service *Service) Send(message string, params *types.Params) (err error) {
-	config := service.config
-	if err := service.pkr.UpdateConfigFromParams(config, params); err != nil {
+	cfg := service.config
+	if err := service.pkr.UpdateConfigFromParams(cfg, params); err != nil {
 		service.Logf("Failed to update params: %v", err)
 	}
-	postURL := buildPostURL(config)
+	postURL := buildPostURL(cfg)
 	request := &messageRequest{
 		Message:  message,
-		Title:    config.MessageTitle,
-		Priority: config.Priority,
-		Topic:    config.Topic,
+		Title:    cfg.MessageTitle,
+		Priority: cfg.Priority,
+		Topic:    cfg.Topic,
+		Tags:     cfg.Tags,
 	}
 	response := &messageResponse{}
-	// fmt.Printf("Sending %s to %s\n", config.Topic, postURL)
+	// fmt.Printf("Sending %+v to %s\n", cfg, postURL)
 	if err = service.client.Post(postURL, request, response); err != nil {
 		fmt.Printf("Err %s\n", err.Error())
 		errorRes := &errorResponse{}
