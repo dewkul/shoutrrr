@@ -64,7 +64,7 @@ func (service *Service) Send(message string, params *types.Params) (err error) {
 	postURL := BuildPostURL(cfg)
 
 	request := CreateJsonPayload(cfg, params, message)
-	response := &messageResponse{}
+	response := &MessageResponse{}
 	// fmt.Printf("Sending %+v to %s\n", cfg, postURL)
 	if err = service.client.Post(postURL, request, response); err != nil {
 		fmt.Printf("Err %s\n", err.Error())

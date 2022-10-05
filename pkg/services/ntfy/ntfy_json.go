@@ -17,7 +17,7 @@ type messageRequest struct {
 	Email    string `json:"email,omitempty"`
 }
 
-type messageResponse struct {
+type MessageResponse struct {
 	messageRequest
 	ID        string `json:"id"`
 	Timestamp uint64 `json:"timestamp"`
