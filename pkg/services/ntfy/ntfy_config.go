@@ -1,7 +1,9 @@
 package ntfy
 
 import (
+	"errors"
 	"net/url"
+	"regexp"
 
 	"github.com/containrrr/shoutrrr/pkg/format"
 	"github.com/containrrr/shoutrrr/pkg/services/standard"
@@ -11,14 +13,17 @@ import (
 // Config for use within the ntfy plugin
 type Config struct {
 	standard.EnumlessConfig
-	Host         string   `desc:"Server hostname (and optionally port)" url:"host,port" default:"ntfy.sh"`
-	Topic        string   `desc:"Target topic name (*Required)" url:"path1"`
-	Username     string   `desc:"Username of a protected topic" url:"User" default:""`
-	Password     string   `desc:"Password of a protected topic" url:"Password" default:""`
-	Priority     uint8    `desc:"Message priority with 1=min, 3=default and 5=max" key:"priority" default:"3"`
-	MessageTitle string   `desc:"Message title" key:"title" default:""`
-	DisableTLS   bool     `desc:"Using http instead of https" key:"disabletls" default:"No"`
-	Tags         []string `desc:"List of tags that may or not map to emojis separated by \",\" (comma)" key:"tags,tag" default:""`
+	Host       string   `desc:"Server hostname (and optionally port)" url:"host,port" default:"ntfy.sh"`
+	Topic      string   `desc:"Target topic name (*Required)" url:"path1"`
+	Username   string   `desc:"Username of a protected topic" url:"User" default:""`
+	Password   string   `desc:"Password of a protected topic" url:"Password" default:""`
+	Priority   uint8    `desc:"Message priority with 1=min, 3=default and 5=max" key:"priority" default:"3"`
+	DisableTLS bool     `desc:"Using http instead of https" key:"disabletls" default:"No"`
+	Tags       []string `desc:"List of tags that may or not map to emojis separated by \",\" (comma)" key:"tags,tag" default:""`
+	ClickURL   string   `desc:"Website opened when notification is clicked" key:"click" default:""`
+	Attachment string   `desc:"URL of an attachment" key:"attach" default:""`
+	Email      string   `desc:"E-mail address for e-mail notifications" key:"email" default:""`
+	Delay      string   `desc:"Timestamp or duration for delayed delivery" key:"delay" default:""`
 }
 
 // GetURL returns a URL representation of it's current field values
@@ -49,14 +54,28 @@ func (config *Config) getURL(resolver types.ConfigQueryResolver) *url.URL {
 }
 
 func (config *Config) setURL(resolver types.ConfigQueryResolver, url *url.URL) (err error) {
-	config.Host = url.Hostname() + url.Port()
-	if username := url.User.Username(); len(username) > 0 {
-		config.Username = username
+	// Check URL format
+	r := regexp.MustCompile(`[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
+	host := "ntfy.sh"
+	if r.Match([]byte(url.Hostname())) {
+		host = url.Hostname() + url.Port()
 	}
-	if password, isPasswordSet := url.User.Password(); isPasswordSet {
+
+	config.Host = host
+
+	password, _ := url.User.Password()
+	if username := url.User.Username(); len(username) > 0 && len(password) > 0 {
+		config.Username = username
 		config.Password = password
 	}
-	config.Topic = url.Path[1:]
+
+	if len(url.Path) > 1 {
+		config.Topic = url.Path[1:]
+	}
+
+	if len(config.Topic) < 1 {
+		return errors.New("ntfy topic is invalid")
+	}
 
 	for key, vals := range url.Query() {
 		if err = resolver.Set(key, vals[0]); err != nil {
@@ -70,3 +89,10 @@ const (
 	// Scheme is the identifying part of this service's configuration URL
 	Scheme = "ntfy"
 )
+
+// CreateConfigFromURL to use within the ntfy service
+func CreateConfigFromURL(serviceURL *url.URL) (*Config, error) {
+	config := Config{}
+	err := config.SetURL(serviceURL)
+	return &config, err
+}

@@ -61,19 +61,14 @@ func (service *Service) Send(message string, params *types.Params) (err error) {
 	if err := service.pkr.UpdateConfigFromParams(cfg, params); err != nil {
 		service.Logf("Failed to update params: %v", err)
 	}
-	postURL := buildPostURL(cfg)
-	request := &messageRequest{
-		Message:  message,
-		Title:    cfg.MessageTitle,
-		Priority: cfg.Priority,
-		Topic:    cfg.Topic,
-		Tags:     cfg.Tags,
-	}
+	postURL := BuildPostURL(cfg)
+
+	request := CreateJsonPayload(cfg, params, message)
 	response := &messageResponse{}
 	// fmt.Printf("Sending %+v to %s\n", cfg, postURL)
 	if err = service.client.Post(postURL, request, response); err != nil {
 		fmt.Printf("Err %s\n", err.Error())
-		errorRes := &errorResponse{}
+		errorRes := &ErrorResponse{}
 		if service.client.ErrorResponse(err, errorRes) {
 			return errorRes
 		}
@@ -82,10 +77,31 @@ func (service *Service) Send(message string, params *types.Params) (err error) {
 	return
 }
 
-func buildPostURL(config *Config) string {
+func BuildPostURL(config *Config) string {
 	scheme := "https"
 	if config.DisableTLS {
 		scheme = scheme[:4]
 	}
 	return fmt.Sprintf("%s://%s", scheme, config.Host)
+}
+
+func CreateJsonPayload(cfg *Config, params *types.Params, message string) *messageRequest {
+	title, _ := params.Title()
+
+	return &messageRequest{
+		Message:  message,
+		Title:    title,
+		Priority: cfg.Priority,
+		Topic:    cfg.Topic,
+		Tags:     cfg.Tags,
+		Click:    cfg.ClickURL,
+		Delay:    cfg.Delay,
+		Email:    cfg.Email,
+		Attach:   cfg.Attachment,
+	}
+}
+
+// GetHTTPClient is only supposed to be used for mocking the httpclient when testing
+func (service *Service) GetHTTPClient() *http.Client {
+	return service.httpClient
 }

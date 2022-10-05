@@ -8,7 +8,7 @@ type messageRequest struct {
 	Message  string   `json:"message,omitempty"`
 	Title    string   `json:"title,omitempty"`
 	Tags     []string `json:"tags,omitempty"`
-	Priority uint8    `json:"priority,omitempty"`
+	Priority uint8    `json:"priority" default:"3"`
 	// TODO: Action Buttons
 	Click    string `json:"click,omitempty"`
 	Attach   string `json:"attach,omitempty"`
@@ -24,12 +24,12 @@ type messageResponse struct {
 	Event     string `json:"event"`
 }
 
-type errorResponse struct {
+type ErrorResponse struct {
 	Name        string `json:"error"`
 	Code        uint64 `json:"errorCode"`
 	Description string `json:"errorDescription"`
 }
 
-func (er *errorResponse) Error() string {
+func (er *ErrorResponse) Error() string {
 	return fmt.Sprintf("server responds with %v (%v): %v", er.Name, er.Code, er.Description)
 }
